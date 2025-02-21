@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.routers import milvus_router
+from app.routers import router
 from app.services.milvus_config import collection
 from app.services.milvus_service import populate_database
 from app.config import settings
@@ -19,7 +19,7 @@ app = FastAPI(lifespan=lifespan)
 
 print("🚀 Starting FastAPI server")
 
-app.include_router(milvus_router.router, prefix="/milvus", tags=["Milvus"])
+app.include_router(router.router, prefix="/milvus", tags=["Milvus"])
 
 @app.get("/")
 def home():
