@@ -7,9 +7,11 @@ import torch
 from tqdm import tqdm
 from app.config import settings
 from app.services.milvus_config import collection
+import requests
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load('ViT-B/32', device=device)
+OLLAMA_API_URL = "http://193.144.51.204:11434/api/generate"
 
 def get_image_embedding(image: Image.Image):
     """Convert image to CLIP embedding."""
@@ -44,7 +46,7 @@ def populate_database():
 
     collection.insert([data_to_insert["embedding"], data_to_insert["class_name"]])
 
-def find_similar_class(image: Image.Image):
+def find_similar_class(image: Image.Image,profile: str):
     """Finds the most similar class from Milvus."""
     query_embedding = get_image_embedding(image)
 
@@ -66,3 +68,18 @@ def find_similar_class(image: Image.Image):
         return {"predicted_class": art_name, "description": "TO DO"}
 
     return {"predicted_class": "Unknown", "description": "No match found."}
+
+def generate_description_with_ollama(art_name: str, profile: str) -> str:
+    prompt = f"Describe la obra '{art_name}' para un perfil de usuario '{profile}' de forma educativa y entretenida."
+
+    payload = {
+        "model": "llama3.2",
+        "prompt": prompt
+    }
+
+    try:
+        response = requests.post(OLLAMA_API_URL, json=payload)
+        response_json = response.json()
+        return response_json.get("response", "Response not found.")
+    except Exception as e:
+        return f"Error when connecting with ollama: {str(e)}"
