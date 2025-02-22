@@ -1,22 +1,12 @@
 import io
 from fastapi import APIRouter, HTTPException
+from app.models.models import Base64ImageRequest, SearchResponse
 from app.services.search_service import find_similar_class
 from app.core.logger import logger
 from PIL import Image
-from pydantic import BaseModel
 import base64
 
 router = APIRouter()
-
-
-class SearchResponse(BaseModel):
-    art_class: str
-    description: str
-
-
-class Base64ImageRequest(BaseModel):
-    image_base64: str
-    profile: str = None
 
 
 @router.post(

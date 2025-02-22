@@ -8,9 +8,14 @@ from PIL import Image
 import torch
 from tqdm import tqdm
 from app.config import settings
+from app.models.models import ProfileConfig
 from app.services.milvus_config import collection
 import requests
 from app.core.logger import logger
+from app.services.style_config import (
+    get_language_instruction,
+    get_technical_description,
+)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
@@ -52,7 +57,7 @@ def populate_database():
     collection.insert([data_to_insert["embedding"], data_to_insert["class_name"]])
 
 
-def find_similar_class(image: Image.Image, profile: str):
+def find_similar_class(image: Image.Image, profile: ProfileConfig):
     """Finds the most similar class from Milvus."""
     query_embedding = get_image_embedding(image)
 
@@ -95,7 +100,7 @@ def classify_profile(profile: str) -> str:
         return f"Error when classifying profile: {str(e)}"
 
 
-def generate_description_with_ollama(art_name: str, profile: str) -> str:
+def generate_description_with_ollama(art_name: str, profile: ProfileConfig) -> str:
     art_name = art_name.replace("_", " ")
 
     # profile_level = classify_profile(profile)
@@ -109,13 +114,22 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
     # else:
     #     max_tokens = 200
 
+    # La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante.
+    # Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
+    # La descripción debe tener aproximadamente {profile.max_tokens} palabras.
     max_tokens = 200
 
     prompt = f"""
-        Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa, sobre todo enfodcado para un perfil {profile}.
-        La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante.
-        Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
-        La descripción debe tener aproximadamente {max_tokens} palabras.
+        Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa, sobre todo enfocado para un perfil {profile.name}.
+
+        - Nivel técnico: {profile.technical_level} ({get_technical_description(profile.technical_level)})
+        - Estilo de lenguaje: {profile.language_style}
+        - Público objetivo: {profile.name}
+
+        ## Instrucciones específicas:
+        1. Estilo de comunicación: {get_language_instruction(profile.language_style)}
+        2. {profile.special_instructions}
+        3. Maximo de palabras: {profile.max_tokens}
 
         El formato de salida debe ser un JSON con la siguiente estructura, siendo todo strings de texto:
         {{
@@ -125,11 +139,11 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
             "descripcion": "Descripción detallada de la obra"
         }}
 
-        ¡NO incluyas texto fuera del JSON! Asegúrate de que el JSON esté correctamente cerrado.
+        ¡NO incluyas texto fuera del JSON! Asegúrate de que SOLO MANDAS el JSON y esté correctamente cerrado.
     """
 
     payload = {
-        "model": "llama3.2:1b",
+        "model": "llama3.2",
         "prompt": prompt,
         "stream": False,
         "num_predict": max_tokens + 100,
