@@ -6,7 +6,10 @@ from PIL import Image
 router = APIRouter()
 
 @router.post("/search")
-async def search_image(file: UploadFile = File(...)):
+async def search_image(
+    file: UploadFile = File(...),
+    profile: str = None
+    ):
     """🔍 Search for similar embeddings in Milvus."""
     
     logger.info("📸 Received image search request.")
@@ -15,7 +18,7 @@ async def search_image(file: UploadFile = File(...)):
         logger.info("🔍 Searching for similar images...")
 
         image = Image.open(file.file).convert("RGB")
-        result = find_similar_class(image)
+        result = find_similar_class(image,profile)
 
         if result["predicted_class"] != 'Unknown':
             predicted_class = result["predicted_class"]
