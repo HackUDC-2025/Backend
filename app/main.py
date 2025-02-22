@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import router
 from app.services.milvus_config import collection
 from app.services.milvus_service import populate_database
 from app.config import settings
 from pymilvus import Collection, utility
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,8 +27,15 @@ app = FastAPI(
         "email": "mario.diez@udc.es",
         "url": "https://github.com/mario-diez",
         
-    },              )
-
+    },
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 print("🚀 Starting FastAPI server")
 
 app.include_router(router.router, prefix="/milvus", tags=["Milvus"])
