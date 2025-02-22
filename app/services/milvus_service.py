@@ -124,6 +124,16 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
         "prompt": prompt,
         "stream": False,
         "num_predict": max_tokens + 100,
+        "format": {
+        "type": "object",
+        "properties": {
+            "description": {"type": "string"},
+            "author": {"type": "string"},
+            "year": {"type": "string"},
+            "title": {"type": "string"}  
+            },
+        "required": ["description", "author", "year", "title"]
+        }
     }
 
     try:
