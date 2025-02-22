@@ -11,7 +11,6 @@ from app.config import settings
 from app.models.models import ProfileConfig
 from app.services.milvus_config import collection
 import requests
-from app.core.logger import logger
 from app.services.style_config import (
     get_language_instruction,
     get_technical_description,
@@ -94,7 +93,6 @@ def find_similar_class(image: Image.Image, profile: ProfileConfig):
     )
     if results and results[0]:
         art_name = results[0][0].entity.get("class_name")
-        print(results[0][0].entity)
         wikipedia_url = results[0][0].entity.get("wikipedia")
         prado_url = results[0][0].entity.get("prado")
         ollama_response = generate_description_with_ollama(art_name, profile)
@@ -108,44 +106,8 @@ def find_similar_class(image: Image.Image, profile: ProfileConfig):
     return {"predicted_class": "Unknown", "description": "No match found."}
 
 
-def classify_profile(profile: str) -> str:
-    prompt = f"Clasifica el siguiente perfil de usuario en uno de estos tres niveles: principiante, intermedio o avanzado, basándote en su nivel de conocimiento en arte. El perfil es: {profile}. Responde solo con uno de estos tres niveles: 'principiante', 'intermedio' o 'avanzado'.\n\nEjemplos:\n'Principiante': Un estudiante que está comenzando a estudiar arte, sin mucho conocimiento previo sobre técnicas o historia del arte.\n'Intermedio': Alguien que tiene algunos años de experiencia o estudio en arte, entiende las técnicas básicas y la historia, y puede hablar con cierta profundidad sobre el tema.\n'Avanzado': Un experto, artista profesional o alguien con un amplio conocimiento sobre la historia, teorías y técnicas avanzadas del arte, como un doctor en historia del arte, que tiene un conocimiento profundo de las obras y contextos históricos, y puede hacer investigaciones detalladas o enseñar a otros a nivel académico."
-
-    payload = {
-        "model": "llama3.2",
-        "prompt": prompt,
-        "stream": False,
-        "num_predict": 10,
-    }
-
-    try:
-        response = requests.post(OLLAMA_API_URL, json=payload)
-        response_json = response.json()
-        level = response_json.get("response", "No response found.")
-        logger.success(level)
-        return level.strip().lower().replace("'", "")
-    except Exception as e:
-        return f"Error when classifying profile: {str(e)}"
-
-
 def generate_description_with_ollama(art_name: str, profile: ProfileConfig) -> str:
     art_name = art_name.replace("_", " ")
-
-    # profile_level = classify_profile(profile)
-    # print(f"Profile level: {profile_level}")
-    # if profile_level == "principiante":
-    #     maxTokens = 100
-    # elif profile_level == "intermedio":
-    #     maxTokens = 200
-    # elif profile_level == "avanzado":
-    #     maxTokens = 300
-    # else:
-    #     maxTokens = 200
-
-    # La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante.
-    # Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
-    # La descripción debe tener aproximadamente {profile.maxTokens} palabras.
-    maxTokens = 200
 
     prompt = f"""
         Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa, sobre todo enfocado para un perfil {profile.name}.
@@ -174,7 +136,7 @@ def generate_description_with_ollama(art_name: str, profile: ProfileConfig) -> s
         "model": "llama3.2",
         "prompt": prompt,
         "stream": False,
-        "num_predict": maxTokens + 100,
+        "num_predict": profile.maxTokens + 100,
     }
 
     try:
