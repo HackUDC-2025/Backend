@@ -74,7 +74,7 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
     prompt = f"You are a museum guide, imagine you have to describe the artwork '{art_name}' for a '{profile}' in a maximum of 100 characters, give me only the description of the artwork, dont give me anything that it is not description."
 
     payload = {
-        "model": "deepseek-r1",
+        "model": "llama3.2",
         "prompt": prompt,
         "stream": False,
         "max_tokens": 100,
