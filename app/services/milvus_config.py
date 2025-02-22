@@ -17,6 +17,8 @@ fields = [
     FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
     FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=512),
     FieldSchema(name="class_name", dtype=DataType.VARCHAR, max_length=100),
+    FieldSchema(name="wikipedia", dtype=DataType.VARCHAR, max_length=500),
+    FieldSchema(name="prado", dtype=DataType.VARCHAR, max_length=500),
 ]
 
 schema = CollectionSchema(fields, description="Artwork class embeddings")

@@ -35,26 +35,46 @@ def populate_database():
     """Compute one representative embedding per class and store in Milvus."""
     print("📂 Loading dataset images into Milvus...")
     class_embeddings = defaultdict(list)
+    class_metadata = dict()
 
     for class_name in tqdm(os.listdir(settings.DATASET_PATH)):
         class_path = os.path.join(settings.DATASET_PATH, class_name)
         if os.path.isdir(class_path):
-            for img_name in os.listdir(class_path)[:30]:
+            metadata_path = os.path.join(class_path, "metadata.json")
+
+            if os.path.exists(metadata_path):
+                with open(metadata_path, "r") as f:
+                    metadata = json.load(f)
+                    class_metadata[class_name] = metadata
+
+            for img_name in os.listdir(class_path):
                 img_path = os.path.join(class_path, img_name)
-                if os.path.isdir(img_path):
+
+                if os.path.isdir(img_path) or not img_path.endswith(".jpg"):
                     continue
                 image = Image.open(img_path)
                 embedding = get_image_embedding(image)
                 class_embeddings[class_name].append(embedding)
 
-    data_to_insert = {"embedding": [], "class_name": []}
+    data_to_insert = {"embedding": [], "class_name": [], "wikipedia": [], "prado": []}
     for class_name, embeddings in class_embeddings.items():
         avg_embedding = np.mean(embeddings, axis=0).astype(np.float32)
 
         data_to_insert["embedding"].append(avg_embedding)
         data_to_insert["class_name"].append(class_name)
 
-    collection.insert([data_to_insert["embedding"], data_to_insert["class_name"]])
+        metadata = class_metadata.get(class_name, {})
+        data_to_insert["wikipedia"].append(metadata.get("wikipedia", ""))
+        data_to_insert["prado"].append(metadata.get("prado", ""))
+
+    collection.insert(
+        [
+            data_to_insert["embedding"],
+            data_to_insert["class_name"],
+            data_to_insert["wikipedia"],
+            data_to_insert["prado"],
+        ]
+    )
 
 
 def find_similar_class(image: Image.Image, profile: ProfileConfig):
