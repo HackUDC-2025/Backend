@@ -8,6 +8,7 @@ from tqdm import tqdm
 from app.config import settings
 from app.services.milvus_config import collection
 import requests
+from app.core.logger import logger
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load('ViT-B/32', device=device)
@@ -69,24 +70,54 @@ def find_similar_class(image: Image.Image,profile: str):
 
     return {"predicted_class": "Unknown", "description": "No match found."}
 
-def generate_description_with_ollama(art_name: str, profile: str) -> str:
-    art_name = art_name.replace("_", " ")
-    prompt = f"You are a museum guide, imagine you have to describe the artwork '{art_name}' for a '{profile}' in a maximum of 100 characters, give me only the description of the artwork, dont give me anything that it is not description."
+def classify_profile(profile: str) -> str:
+    prompt = f"Clasifica el siguiente perfil de usuario en uno de estos tres niveles: principiante, intermedio o avanzado, basándote en su nivel de conocimiento en arte. El perfil es: {profile}. Responde solo con uno de estos tres niveles: 'principiante', 'intermedio' o 'avanzado'.\n\nEjemplos:\n'Principiante': Un estudiante que está comenzando a estudiar arte, sin mucho conocimiento previo sobre técnicas o historia del arte.\n'Intermedio': Alguien que tiene algunos años de experiencia o estudio en arte, entiende las técnicas básicas y la historia, y puede hablar con cierta profundidad sobre el tema.\n'Avanzado': Un experto, artista profesional o alguien con un amplio conocimiento sobre la historia, teorías y técnicas avanzadas del arte, como un doctor en historia del arte, que tiene un conocimiento profundo de las obras y contextos históricos, y puede hacer investigaciones detalladas o enseñar a otros a nivel académico."
 
     payload = {
         "model": "llama3.2",
         "prompt": prompt,
         "stream": False,
-        "max_tokens": 100,
+        "num_predict": 10,
+    }
+    
+    try:
+        response = requests.post(OLLAMA_API_URL, json=payload)
+        response_json = response.json()
+        level = response_json.get("response", "No response found.")
+        logger.success(level)
+        return level.strip().lower().replace("\'", "")
+    except Exception as e:
+        return f"Error when classifying profile: {str(e)}"
+
+def generate_description_with_ollama(art_name: str, profile: str) -> str:
+    art_name = art_name.replace("_", " ")
+
+    # profile_level = classify_profile(profile)
+    # print(f"Profile level: {profile_level}")
+    # if profile_level == "principiante":
+    #     max_tokens = 100
+    # elif profile_level == "intermedio":
+    #     max_tokens = 200
+    # elif profile_level == "avanzado":
+    #     max_tokens = 300
+    # else:
+    #     max_tokens = 200
+
+    max_tokens = 200
+
+    logger.success("Max tokens: {}".format(max_tokens))
+    prompt = f"Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa y profesional, adaptada al perfil de {profile}. La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante. Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario. Dame una descripción en aproximadamente {max_tokens} palabras"
+
+    payload = {
+        "model": "llama3.2:1b",
+        "prompt": prompt,
+        "stream": False,
+        "num_predict": max_tokens,
     }
 
     try:
         response = requests.post(OLLAMA_API_URL, json=payload)
         response_json = response.json()
-        return extract_final_text(response_json.get("response", "Response not found."))
+        return response_json.get("response", "Response not found.")
     except Exception as e:
         return f"Error when connecting with ollama: {str(e)}"
-    
-def extract_final_text(input_text: str) -> str:
-    parts = input_text.split("</think>")
-    return parts[-1].strip() if len(parts) > 1 else input_text.strip()
