@@ -8,10 +8,10 @@ class SearchResponse(BaseModel):
 
 class ProfileConfig(BaseModel):
     name: str
-    technical_level: str
-    language_style: str
-    max_tokens: int
-    special_instructions: str
+    technicalLevel: str
+    languageStyle: str
+    maxTokens: int
+    specialInstructions: str
 
 
 class Base64ImageRequest(BaseModel):

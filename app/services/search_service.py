@@ -106,30 +106,30 @@ def generate_description_with_ollama(art_name: str, profile: ProfileConfig) -> s
     # profile_level = classify_profile(profile)
     # print(f"Profile level: {profile_level}")
     # if profile_level == "principiante":
-    #     max_tokens = 100
+    #     maxTokens = 100
     # elif profile_level == "intermedio":
-    #     max_tokens = 200
+    #     maxTokens = 200
     # elif profile_level == "avanzado":
-    #     max_tokens = 300
+    #     maxTokens = 300
     # else:
-    #     max_tokens = 200
+    #     maxTokens = 200
 
     # La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante.
     # Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
-    # La descripción debe tener aproximadamente {profile.max_tokens} palabras.
-    max_tokens = 200
+    # La descripción debe tener aproximadamente {profile.maxTokens} palabras.
+    maxTokens = 200
 
     prompt = f"""
         Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa, sobre todo enfocado para un perfil {profile.name}.
 
-        - Nivel técnico: {profile.technical_level} ({get_technical_description(profile.technical_level)})
-        - Estilo de lenguaje: {profile.language_style}
+        - Nivel técnico: {profile.technicalLevel} ({get_technical_description(profile.technicalLevel)})
+        - Estilo de lenguaje: {profile.languageStyle}
         - Público objetivo: {profile.name}
 
         ## Instrucciones específicas:
-        1. Estilo de comunicación: {get_language_instruction(profile.language_style)}
-        2. {profile.special_instructions}
-        3. Maximo de palabras: {profile.max_tokens}
+        1. Estilo de comunicación: {get_language_instruction(profile.languageStyle)}
+        2. {profile.specialInstructions}
+        3. Maximo de palabras: {profile.maxTokens}
 
         El formato de salida debe ser un JSON con la siguiente estructura, siendo todo strings de texto:
         {{
@@ -146,7 +146,7 @@ def generate_description_with_ollama(art_name: str, profile: ProfileConfig) -> s
         "model": "llama3.2",
         "prompt": prompt,
         "stream": False,
-        "num_predict": max_tokens + 100,
+        "num_predict": maxTokens + 100,
     }
 
     try:
