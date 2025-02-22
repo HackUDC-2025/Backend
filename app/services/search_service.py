@@ -112,7 +112,7 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
     max_tokens = 200
 
     prompt = f"""
-        Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa y profesional, adaptada al perfil de {profile}.
+        Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa, sobre todo enfodcado para un perfil {profile}.
         La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante.
         Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
         La descripción debe tener aproximadamente {max_tokens} palabras.
