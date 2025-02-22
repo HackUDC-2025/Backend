@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, UploadFile
+import io
+from fastapi import APIRouter, HTTPException
 from app.services.milvus_service import find_similar_class
 from app.core.logger import logger
 from PIL import Image
 from pydantic import BaseModel
+import base64
 
 router = APIRouter()
 
@@ -10,6 +12,11 @@ router = APIRouter()
 class SearchResponse(BaseModel):
     art_class: str
     description: str
+
+
+class Base64ImageRequest(BaseModel):
+    image_base64: str
+    profile: str = None
 
 
 @router.post(
@@ -51,16 +58,17 @@ class SearchResponse(BaseModel):
     },
 )
 @router.post("/search")
-async def search_image(file: UploadFile = None, profile: str = None):
+async def search_image(request: Base64ImageRequest):
     """🔍 Search for similar embeddings in Milvus."""
 
     logger.info("📸 Received image search request.")
 
     try:
+        image_data = base64.b64decode(request.image_base64)
         logger.info("🔍 Searching for similar images...")
 
-        image = Image.open(file.file).convert("RGB")
-        result = find_similar_class(image, profile)
+        image = Image.open(io.BytesIO(image_data)).convert("RGB")
+        result = find_similar_class(image, request.profile)
 
         if result["predicted_class"] != "Unknown":
             predicted_class = result["predicted_class"]
