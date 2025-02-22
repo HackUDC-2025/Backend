@@ -4,7 +4,8 @@ from app.routers import router
 from app.services.milvus_config import collection
 from app.services.milvus_service import populate_database
 from app.config import settings
-from pymilvus import Collection, utility
+from pymilvus import utility
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,6 +15,7 @@ async def lifespan(app: FastAPI):
     else:
         print(f"Database already populated with {collection.num_entities} embeddings.")
     yield
+
 
 app = FastAPI(
     lifespan=lifespan,
@@ -25,12 +27,12 @@ app = FastAPI(
         "email": "mario.diez@udc.es",
         "url": "https://github.com/mario-diez",
     },
-
-              )
+)
 
 print("🚀 Starting FastAPI server")
 
 app.include_router(router.router, prefix="/milvus", tags=["Milvus"])
+
 
 @app.get("/")
 def home():
