@@ -1,25 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 from gtts import gTTS
 import os
+
+from app.models.models import TextToSpeechRequest
 
 router = APIRouter()
 
 
-class TextToSpeechRequest(BaseModel):
-    """
-    Request model for text-to-speech conversion.
-
-    Attributes:
-    - `text` (str): The text that will be converted into audio.
-    - `language` (str, optional): ISO 639-1 language code (default `"es"` for Spanish).
-    """
-    text: str
-    language: str = "es"
-
-
-@router.post("/text-to-speech", summary="Generate an audio file from text", response_class=FileResponse)
+@router.post(
+    "/text-to-speech",
+    summary="Generate an audio file from text",
+    response_class=FileResponse,
+)
 async def generate_audio(request: TextToSpeechRequest):
     """
     Converts the provided text into an MP3 audio file using `gTTS`.
