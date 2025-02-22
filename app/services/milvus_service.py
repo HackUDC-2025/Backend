@@ -111,36 +111,20 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
     max_tokens = 200
 
     prompt = f"""
-    Eres un experto guía de museo y tu tarea es proporcionar una explicación detallada sobre la obra de arte "{art_name}".
-    Adapta la explicación al perfil de {profile}, asegurándote de que la información sea clara y adecuada para su nivel de conocimiento.
+        Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa y profesional, adaptada al perfil de {profile}.
+        La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante.
+        Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
+        Dame una descripción en aproximadamente {max_tokens+100} palabras.
 
-    🔹 **Formato de salida esperado:**
-    - **Título**: Nombre completo de la obra.
-    - **Autor**: Nombre del creador.
-    - **Año**: Año en que fue realizada.
-    - **Descripción**: Un análisis detallado de al menos {max_tokens + 100} palabras, destacando el contexto histórico, los materiales utilizados, el significado de la obra y su impacto en el arte.
-
-    No incluyas saludos ni introducciones, y asegúrate de que la respuesta sea coherente y con suficiente profundidad.
+        El formato de salida debe ser la explicacion, empezando por el titulo de la obra, siguiendo con el autor y el año, y luego la descripcion.
     """
 
-
     payload = {
-    "model": "llama3.2:1b",
-    "prompt": prompt,
-    "stream": False,
-    "num_predict": 500,  # 🔥 Prueba con 500 tokens o más
-    "format": {
-        "type": "object",
-        "properties": {
-            "description": {"type": "string"},
-            "author": {"type": "string"},
-            "year": {"type": "string"},
-            "title": {"type": "string"}  
-        },
-        "required": ["description", "author", "year", "title"]
-        }
+        "model": "llama3.2:1b",
+        "prompt": prompt,
+        "stream": False,
+        "num_predict": max_tokens + 100,
     }
-
 
     try:
         response = requests.post(OLLAMA_API_URL, json=payload)
