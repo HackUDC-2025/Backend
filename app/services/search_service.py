@@ -90,12 +90,20 @@ def find_similar_class(image: Image.Image, profile: ProfileConfig):
         anns_field="embedding",
         param=settings.PARAMS_SEARCH,
         limit=1,
-        output_fields=["class_name"],
+        output_fields=["class_name", "wikipedia", "prado"],
     )
     if results and results[0]:
         art_name = results[0][0].entity.get("class_name")
+        print(results[0][0].entity)
+        wikipedia_url = results[0][0].entity.get("wikipedia")
+        prado_url = results[0][0].entity.get("prado")
         ollama_response = generate_description_with_ollama(art_name, profile)
-        return {"predicted_class": art_name, "description": ollama_response}
+        return {
+            "predicted_class": art_name,
+            "description": ollama_response,
+            "wikipedia_url": wikipedia_url,
+            "prado_url": prado_url,
+        }
 
     return {"predicted_class": "Unknown", "description": "No match found."}
 

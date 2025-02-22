@@ -64,11 +64,18 @@ async def search_image(request: Base64ImageRequest):
         if result["predicted_class"] != "Unknown":
             predicted_class = result["predicted_class"]
             description = result["description"]
+            wikipedia_url = result["wikipedia_url"]
+            prado_url = result["prado_url"]
             logger.success(
                 f"✅ Search completed successfully. Found: {predicted_class}"
             )
 
-            data = {"art_class": predicted_class, "description": description}
+            data = {
+                "art_class": predicted_class,
+                "description": description,
+                "wikipedia_url": wikipedia_url,
+                "prado_url": prado_url,
+            }
             return JSONResponse(content=data)
 
         logger.warning("❌ No similar classes found.")
