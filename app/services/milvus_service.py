@@ -74,7 +74,7 @@ def classify_profile(profile: str) -> str:
     prompt = f"Clasifica el siguiente perfil de usuario en uno de estos tres niveles: principiante, intermedio o avanzado, basándote en su nivel de conocimiento en arte. El perfil es: {profile}. Responde solo con uno de estos tres niveles: 'principiante', 'intermedio' o 'avanzado'.\n\nEjemplos:\n'Principiante': Un estudiante que está comenzando a estudiar arte, sin mucho conocimiento previo sobre técnicas o historia del arte.\n'Intermedio': Alguien que tiene algunos años de experiencia o estudio en arte, entiende las técnicas básicas y la historia, y puede hablar con cierta profundidad sobre el tema.\n'Avanzado': Un experto, artista profesional o alguien con un amplio conocimiento sobre la historia, teorías y técnicas avanzadas del arte, como un doctor en historia del arte, que tiene un conocimiento profundo de las obras y contextos históricos, y puede hacer investigaciones detalladas o enseñar a otros a nivel académico."
 
     payload = {
-        "model": "llama3.2:1b",
+        "model": "llama3.2",
         "prompt": prompt,
         "stream": False,
         "num_predict": 10,

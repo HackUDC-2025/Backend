@@ -8,14 +8,25 @@ from pymilvus import Collection, utility
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not utility.has_collection(settings.MILVUS_COLLECTION_NAME) or collection.is_empty:
+    if not utility.has_collection(settings.MILVUS_COLLECTION_NAME):
         print("No collection found. Populating database...")
         populate_database()
     else:
         print(f"Database already populated with {collection.num_entities} embeddings.")
     yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title="ArtLens HackUDC2025 API",
+    description="API for the ArtLens HackUDC2025 project. This API is used to interact with the Milvus database.",
+    version="1.0.0",
+    contact={
+        "name": "Mario Casado Diez",
+        "email": "mario.diez@udc.es",
+        "url": "https://github.com/mario-diez",
+    },
+
+              )
 
 print("🚀 Starting FastAPI server")
 
