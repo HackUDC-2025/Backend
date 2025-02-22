@@ -2,3 +2,4 @@
 volumes/
 *.log
 __pycache__/
+data/*

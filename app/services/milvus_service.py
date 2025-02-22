@@ -60,26 +60,33 @@ def find_similar_class(image: Image.Image,profile: str):
         param=settings.PARAMS_SEARCH,
         limit=1,
         output_fields=["class_name"]
-    )
-
-    # Process
+    )    
     if results and results[0]:
         art_name = results[0][0].entity.get("class_name")
-        return {"predicted_class": art_name, "description": "TO DO"}
+        art_name = results[0][0].entity.get("class_name")
+        ollama_response = generate_description_with_ollama(art_name, profile)
+        return {"predicted_class": art_name, "description": ollama_response}
 
     return {"predicted_class": "Unknown", "description": "No match found."}
 
 def generate_description_with_ollama(art_name: str, profile: str) -> str:
-    prompt = f"Describe la obra '{art_name}' para un perfil de usuario '{profile}' de forma educativa y entretenida."
+    art_name = art_name.replace("_", " ")
+    prompt = f"You are a museum guide, imagine you have to describe the artwork '{art_name}' for a '{profile}' in a maximum of 100 characters, give me only the description of the artwork, dont give me anything that it is not description."
 
     payload = {
-        "model": "llama3.2",
-        "prompt": prompt
+        "model": "deepseek-r1",
+        "prompt": prompt,
+        "stream": False,
+        "max_tokens": 100,
     }
 
     try:
         response = requests.post(OLLAMA_API_URL, json=payload)
         response_json = response.json()
-        return response_json.get("response", "Response not found.")
+        return extract_final_text(response_json.get("response", "Response not found."))
     except Exception as e:
         return f"Error when connecting with ollama: {str(e)}"
+    
+def extract_final_text(input_text: str) -> str:
+    parts = input_text.split("</think>")
+    return parts[-1].strip() if len(parts) > 1 else input_text.strip()

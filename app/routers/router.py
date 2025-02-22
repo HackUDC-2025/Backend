@@ -18,7 +18,9 @@ async def search_image(
         logger.info("🔍 Searching for similar images...")
 
         image = Image.open(file.file).convert("RGB")
+        logger.success("sss{profile}ssss")
         result = find_similar_class(image,profile)
+        logger.success(f"result")
 
         if result["predicted_class"] != 'Unknown':
             predicted_class = result["predicted_class"]
