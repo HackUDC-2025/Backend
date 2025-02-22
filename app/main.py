@@ -24,9 +24,8 @@ app = FastAPI(
         "name": "Mario Casado Diez",
         "email": "mario.diez@udc.es",
         "url": "https://github.com/mario-diez",
-    },
-
-              )
+        
+    },              )
 
 print("🚀 Starting FastAPI server")
 
