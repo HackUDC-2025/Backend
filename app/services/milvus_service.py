@@ -1,4 +1,5 @@
 from collections import defaultdict
+import json
 import os
 import clip
 import numpy as np
@@ -64,7 +65,6 @@ def find_similar_class(image: Image.Image,profile: str):
     )    
     if results and results[0]:
         art_name = results[0][0].entity.get("class_name")
-        art_name = results[0][0].entity.get("class_name")
         ollama_response = generate_description_with_ollama(art_name, profile)
         return {"predicted_class": art_name, "description": ollama_response}
 
@@ -105,19 +105,39 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
 
     max_tokens = 200
 
-    logger.success("Max tokens: {}".format(max_tokens))
-    prompt = f"Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa y profesional, adaptada al perfil de {profile}. La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante. Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario. Dame una descripción en aproximadamente {max_tokens} palabras"
+    prompt = f"""
+        Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa y profesional, adaptada al perfil de {profile}. 
+        La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante. 
+        Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario. 
+        Dame una descripción en aproximadamente {max_tokens+100} palabras.
+
+        El formato de salida debe ser un JSON con las siguientes claves:
+        - "Titulo obra": el título de la obra.
+        - "Autor": el autor de la obra.
+        - "Año(s)": el año de creación de la obra.
+        - "Descripcion": una descripción de la obra.
+    """
 
     payload = {
         "model": "llama3.2:1b",
         "prompt": prompt,
         "stream": False,
-        "num_predict": max_tokens,
+        "num_predict": max_tokens+100,
     }
 
     try:
         response = requests.post(OLLAMA_API_URL, json=payload)
         response_json = response.json()
-        return response_json.get("response", "Response not found.")
+
+        response_str = response_json.get("response", "")
+        if response_str:
+            try:
+                response_json = json.loads(response_str)
+                
+                return response_json
+            except json.JSONDecodeError:
+                return {"error": "Failed to decode JSON from response"}
+        else:
+            return {"error": "Response field is empty"}
     except Exception as e:
         return f"Error when connecting with ollama: {str(e)}"
