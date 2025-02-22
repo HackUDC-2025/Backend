@@ -11,7 +11,10 @@ from pymilvus import utility
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not utility.has_collection(settings.MILVUS_COLLECTION_NAME):
+    if (
+        not utility.has_collection(settings.MILVUS_COLLECTION_NAME)
+        or collection.is_empty
+    ):
         print("No collection found. Populating database...")
         populate_database()
     else:
