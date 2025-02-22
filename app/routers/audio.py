@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from gtts import gTTS
-import os
 
 from app.models.models import TextToSpeechRequest
 
@@ -46,6 +45,3 @@ async def generate_audio(request: TextToSpeechRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error generating audio: {str(e)}")
-    finally:
-        if os.path.exists(audio_file):
-            os.remove(audio_file)  # Clean up temporary file
