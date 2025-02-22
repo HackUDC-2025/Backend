@@ -4,6 +4,7 @@ import clip
 import numpy as np
 from PIL import Image
 import torch
+from tqdm import tqdm
 from app.config import settings
 from app.services.milvus_config import collection
 
@@ -19,11 +20,11 @@ def get_image_embedding(image: Image.Image):
     return embedding.cpu().numpy().tolist()[0]
 
 def populate_database():
-    """Compute one representative embedding per class and store in ChromaDB."""
+    """Compute one representative embedding per class and store in Milvus."""
     print("📂 Loading dataset images into Milvus...")
     class_embeddings = defaultdict(list)
 
-    for class_name in os.listdir(settings.DATASET_PATH):
+    for class_name in tqdm(os.listdir(settings.DATASET_PATH)):
         class_path = os.path.join(settings.DATASET_PATH, class_name)
         if os.path.isdir(class_path):
             for img_name in os.listdir(class_path)[:30]:

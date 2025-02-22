@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     MILVUS_HOST: str = "127.0.0.1"
     MILVUS_PORT: int = 19530
-    DATASET_PATH:str  = "data/test"
+    DATASET_PATH:str  = "dataset"
     MILVUS_COLLECTION_NAME: str = "museum_embeddings"
     PARAMS_SEARCH: dict = {
         "index_type": "IVF_FLAT",
