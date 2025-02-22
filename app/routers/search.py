@@ -1,6 +1,6 @@
 import io
 from fastapi import APIRouter, HTTPException
-from app.services.milvus_service import find_similar_class
+from app.services.search_service import find_similar_class
 from app.core.logger import logger
 from PIL import Image
 from pydantic import BaseModel

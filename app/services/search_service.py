@@ -1,6 +1,7 @@
 from collections import defaultdict
 import json
 import os
+import re
 import clip
 import numpy as np
 from PIL import Image
@@ -114,9 +115,17 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
         Eres un guía de museo. Explica la obra de arte {art_name} de manera concisa y profesional, adaptada al perfil de {profile}.
         La descripción debe ser detallada y acorde con el nivel del perfil, sin ser redundante.
         Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
-        Dame una descripción en aproximadamente {max_tokens+100} palabras.
+        La descripción debe tener aproximadamente {max_tokens} palabras.
 
-        El formato de salida debe ser la explicacion, empezando por el titulo de la obra, siguiendo con el autor y el año, y luego la descripcion.
+        El formato de salida debe ser un JSON con la siguiente estructura, siendo todo strings de texto:
+        {{
+            "titulo": "Título de la obra",
+            "autor": "Nombre del autor",
+            "año": "Año de creación en formato de cadena de texto (string)",
+            "descripcion": "Descripción detallada de la obra"
+        }}
+
+        ¡NO incluyas texto fuera del JSON! Asegúrate de que el JSON esté correctamente cerrado.
     """
 
     payload = {
@@ -129,12 +138,13 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
     try:
         response = requests.post(OLLAMA_API_URL, json=payload)
         response_json = response.json()
-
         response_str = response_json.get("response", "")
-        if response_str:
-            try:
-                response_json = json.loads(response_str)
 
+        if response_str:
+            print(response_str)
+            try:
+                json_str = repair_json(response_str)
+                response_json = json.loads(json_str)
                 return response_json
             except json.JSONDecodeError:
                 return {"error": "Failed to decode JSON from response"}
@@ -142,3 +152,35 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
             return {"error": "Response field is empty"}
     except Exception as e:
         return f"Error when connecting with ollama: {str(e)}"
+
+
+def repair_json(raw_response: str) -> str:
+    """
+    Intenta reparar un JSON malformado:
+    1. Extrae el fragmento que parece JSON.
+    2. Añade llaves de cierre si faltan.
+    3. Elimina texto sobrante.
+    """
+    match = re.search(r"\{.*", raw_response, re.DOTALL)
+    if not match:
+        raise ValueError("No se encontró JSON en la respuesta.")
+
+    json_str = match.group(0).strip()
+
+    open_braces = json_str.count("{")
+    close_braces = json_str.count("}")
+
+    if open_braces > close_braces:
+        json_str += "}" * (open_braces - close_braces)
+
+    last_brace = json_str.rfind("}")
+    if last_brace != -1:
+        json_str = json_str[: last_brace + 1]
+
+    try:
+        json.loads(json_str)
+        return json_str
+    except json.JSONDecodeError:
+        return json.loads(json_str + "}")
+    except Exception as e:
+        raise ValueError(f"JSON irreparable: {e}")

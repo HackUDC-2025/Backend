@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers.search import router as search_router
 from app.routers.audio import router as audio_router
 from app.services.milvus_config import collection
-from app.services.milvus_service import populate_database
+from app.services.search_service import populate_database
 from app.config import settings
 from pymilvus import utility
 
@@ -39,11 +39,11 @@ app.add_middleware(
 )
 print("🚀 Starting FastAPI server")
 
-app.include_router(search_router, prefix="/milvus", tags=["Milvus"])
+app.include_router(search_router, tags=["search"])
 app.include_router(audio_router, tags=["audio"])
 
 
 @app.get("/")
 def home():
     print("🏠 Home route accessed")
-    return {"message": "FastAPI + Milvus is running!"}
+    return {"message": "FastAPI is running!"}
