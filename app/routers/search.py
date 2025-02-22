@@ -1,5 +1,6 @@
 import io
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from app.models.models import Base64ImageRequest, SearchResponse
 from app.services.search_service import find_similar_class
 from app.core.logger import logger
@@ -67,7 +68,8 @@ async def search_image(request: Base64ImageRequest):
                 f"✅ Search completed successfully. Found: {predicted_class}"
             )
 
-            return {"art_class": predicted_class, "description": description}
+            data = {"art_class": predicted_class, "description": description}
+            return JSONResponse(content=data)
 
         logger.warning("❌ No similar classes found.")
         raise HTTPException(status_code=404, detail="No match found.")
