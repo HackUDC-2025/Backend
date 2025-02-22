@@ -60,12 +60,12 @@ def find_similar_class(image: Image.Image,profile: str):
         param=settings.PARAMS_SEARCH,
         limit=1,
         output_fields=["class_name"]
-    )
-
-    # Process
+    )    
     if results and results[0]:
         art_name = results[0][0].entity.get("class_name")
-        return {"predicted_class": art_name, "description": "TO DO"}
+        art_name = results[0][0].entity.get("class_name")
+        ollama_response = generate_description_with_ollama(art_name, profile)
+        return {"predicted_class": art_name, "description": ollama_response}
 
     return {"predicted_class": "Unknown", "description": "No match found."}
 
@@ -74,7 +74,9 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
 
     payload = {
         "model": "llama3.2",
-        "prompt": prompt
+        "prompt": prompt,
+        "stream": False,
+        "max_tokens": 100,
     }
 
     try:
