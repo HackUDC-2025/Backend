@@ -116,11 +116,7 @@ def generate_description_with_ollama(art_name: str, profile: str) -> str:
         Proporciona solo la descripción, sin saludos ni introducciones, y asegúrate de que sea fácilmente entendible para el usuario.
         Dame una descripción en aproximadamente {max_tokens+100} palabras.
 
-        El formato de salida debe ser un JSON con las siguientes claves:
-        - "Titulo obra": el título de la obra.
-        - "Autor": el autor de la obra.
-        - "Año(s)": el año de creación de la obra.
-        - "Descripcion": una descripción de la obra.
+        El formato de salida debe ser la explicacion, empezando por el titulo de la obra, siguiendo con el autor y el año, y luego la descripcion.
     """
 
     payload = {
